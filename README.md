@@ -1,6 +1,8 @@
-# Arquitecturas de Software (ARSW) - Laboratorio #5
+# Arquitecturas de Software (ARSW) - Laboratorio #6
 
-## Construción de un cliente 'grueso' con un API REST, HTML5, Javascript y CSS3. Parte I.
+## Procesos de desarrollo de software - PDSW
+
+### Construcción de un cliente 'grueso' con un API REST, HTML5, Javascript y CSS3. Parte II
 
 #### Nicolás Toro
 
@@ -10,7 +12,7 @@
 ---
 
 En este respositorio se muestra la solución al
-[Laboratorio 5](https://github.com/ARSW-ECI-archive/HTML5-JS_REST_CLIENT_Blueprints-1)
+[Laboratorio 6](https://github.com/ARSW-ECI-archive/HTML5-JS_REST_CLIENT_Blueprints-2)
 
 ESCRIBIR SOLUCIÓN
 
@@ -85,7 +87,7 @@ mvn -version
 Si aún no tiene el repositorio localmente, clónelo con:
 
 ```bash
-git clone https://github.com/NicoToro25/ARSW-Laboratorio-5-Blueprints-CSS-JS.git
+git clone https://github.com/NicoToro25/ARSW-Laboratorio-6-Blueprints-REACT-JS-2.git
 ```
 
 #### 3. Compilar los proyectos
@@ -111,152 +113,66 @@ Si se tiene algún inconveniente con la ejecución, asegúrarse de que las varia
 
 ---
 
-### Trabajo individual o en parejas. A quienes tuvieron malos resultados en el parcial anterior se les recomienda hacerlo individualmente.
+![img](img/mock2.png)
 
-![mockup](img/mock.png)
+1. Agregue al canvas de la página un manejador de eventos que permita capturar los 'clicks' realizados, bien sea a través del mouse, o a través de una pantalla táctil. Para esto, tenga en cuenta este ejemplo de uso de los eventos de tipo 'PointerEvent' (aún no soportado por todos los navegadores) para este fin. Recuerde que a diferencia del ejemplo anterior (donde el código JS está incrustado en la vista), se espera tener la inicialización de los manejadores de eventos correctamente modularizado, tal como se muestra en este codepen.
 
-* Al oprimir 'Get blueprints', consulta los planos del usuario dado en el formulario. Por ahora, si la consulta genera un error, sencillamente no se mostrará nada.
-* Al hacer una consulta exitosa, se debe mostrar un mensaje que incluya el nombre del autor, y una tabla con: el nombre de cada plano de autor, el número de puntos del mismo, y un botón para abrirlo.
-* Al seleccionar uno de los planos, se debe mostrar el dibujo del mismo. Por ahora, el dibujo será simplemente una secuencia de segmentos de recta realizada en el mismo orden en el que vengan los puntos.
+2. Agregue lo que haga falta en sus módulos para que cuando se capturen nuevos puntos en el canvas abierto (si no se ha seleccionado un canvas NO se debe hacer nada):
 
----
+* Se agregue el punto al final de la secuencia de puntos del canvas actual (sólo en la memoria de la aplicación, AÚN NO EN EL API!).
+* Se repinte el dibujo.
 
-## Ajustes Backend
+3. Agregue el botón Save/Update. Respetando la arquitectura de módulos actual del cliente, haga que al oprimirse el botón:
 
-1. Trabaje sobre la base del proyecto anterior (en el que se hizo la API REST).
-2. Incluya dentro de las dependencias de Maven los 'webjars' de jQuery y Bootstrap (esto permite tener localmente dichas librerías de JavaScript al momento de construir el proyecto):
+* Se haga PUT al API, con el plano actualizado, en su recurso REST correspondiente.
+* Se haga GET al recurso /blueprints, para obtener de nuevo todos los planos realizados.
+* Se calculen nuevamente los puntos totales del usuario.
 
-    ```xml
-    <dependency>
-        <groupId>org.webjars</groupId>
-        <artifactId>webjars-locator</artifactId>
-    </dependency>
+Para lo anterior tenga en cuenta:
 
-    <dependency>
-        <groupId>org.webjars</groupId>
-        <artifactId>bootstrap</artifactId>
-        <version>3.3.7</version>
-    </dependency>
+* jQuery no tiene funciones para peticiones PUT o DELETE, por lo que es necesario 'configurarlas' manualmente a través de su API para AJAX. Por ejemplo, para hacer una peticion PUT a un recurso /myrecurso:
 
-    <dependency>
-        <groupId>org.webjars</groupId>
-        <artifactId>jquery</artifactId>
-        <version>3.1.0</version>
-    </dependency>                
-    ```
+```bash
+return $.ajax({
+url: "/mirecurso",
+type: 'PUT',
+data: '{"prop1":1000,"prop2":"papas"}',
+contentType: "application/json"
+});
+```
 
----
+Para éste note que la propiedad 'data' del objeto enviado a $.ajax debe ser un objeto jSON (en formato de texto). Si el dato que quiere enviar es un objeto JavaScript, puede convertirlo a jSON con:
 
-## Front-End - Vistas
+```bash
+JSON.stringify(objetojavascript),
+```
 
-1. Cree el directorio donde residirá la aplicación JavaScript. Como se está usando SpringBoot, la ruta para poner en el mismo contenido estático (páginas Web estáticas, aplicaciones HTML5/JS, etc.) es:
+Como en este caso se tienen tres operaciones basadas en callbacks, y que las mismas requieren realizarse en un orden específico, tenga en cuenta cómo usar las promesas de JavaScript mediante alguno de los ejemplos disponibles.
 
-    ```
-    src/main/resources/static
-    ```
-![img](img/indexHTML.png)
+4. Agregue el botón 'Create new blueprint', de manera que cuando se oprima:
 
+* Se borre el canvas actual.
+* Se solicite el nombre del nuevo 'blueprint' (usted decide la manera de hacerlo).
 
-2. Cree, en el directorio anterior, la página index.html, sólo con lo básico: título, campo para la captura del autor, botón de 'Get blueprints', campo `<div>` donde se mostrará el nombre del autor y la tabla de planos.
+Esta opción debe cambiar la manera como funciona la opción 'save/update', pues en este caso, al oprimirse la primera vez debe (igualmente, usando promesas):
 
-![img](img/body.png)
+* Hacer POST al recurso /blueprints, para crear el nuevo plano.
+* Hacer GET a este mismo recurso, para actualizar el listado de planos y el puntaje del usuario.
 
-3. En el elemento `<head>` de la página, agregue las referencia a las librerías de jQuery, Bootstrap y a la hoja de estilos de Bootstrap.
+5. Agregue el botón 'DELETE', de manera que (también con promesas):
 
-    ```html
-    <head>
-        <title>Blueprints</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+* Borre el canvas.
+* Haga DELETE del recurso correspondiente.
+* Haga GET de los planos ahora disponibles.
 
-        <script src="/webjars/jquery/jquery.min.js"></script>
-        <script src="/webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <link rel="stylesheet"
-          href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css" />
-    </head>
-    ```
+## Criterios de evaluación
 
-![img](img/head.png)
+1. Funcional
+* La aplicación carga y dibuja correctamente los planos.
+* La aplicación actualiza la lista de planos cuando se crea y almacena (a través del API) uno nuevo.
+* La aplicación permite modificar planos existentes.
+* La aplicación calcula correctamente los puntos totales.
 
-4. Suba la aplicación (`mvn spring-boot:run`), y rectifique:
-	1. Que la página sea accesible desde:
-    ```
-    http://localhost:8080/index.html
-    ```
-	2. Al abrir la consola de desarrollador del navegador, NO deben aparecer mensajes de error 404 (es decir, que las librerías de JavaScript se cargaron correctamente).
-
----
-
-![img](img/pantallaInicial.png)
-
-![img](img/no404.png)
-
-## Front-End - Lógica
-
-1. Ahora, va a crear un Módulo JavaScript que, a manera de controlador, mantenga los estados y ofrezca las operaciones requeridas por la vista. Para esto tenga en cuenta el [patrón Módulo de JavaScript](https://addyosmani.com/resources/essentialjsdesignpatterns/book/#modulepatternjavascript).
-
-2. Copie el módulo provisto (`apimock.js`) en la misma ruta del módulo antes creado. En éste agréguele más planos (con más puntos) a los autores 'quemados' en el código.
-
-Se agregó más información a los autores que 'quemados'.
-![img](img/apimock.png)
-
-3. Agregue la importación de los dos nuevos módulos a la página HTML (después de las importaciones de las librerías de jQuery y Bootstrap):
-
-    ```html
-    <script src="js/apimock.js"></script>
-    <script src="js/app.js"></script>
-    ```
-   
-Se importan los correspondientes módulos en el orden correcto.
-
-![img](img/modulos.png)
-
-4. Haga que el módulo antes creado mantenga de forma privada:
-	* El nombre del autor seleccionado.
-	* El listado de nombre y tamaño de los planos del autor seleccionado. Es decir, una lista de objetos, donde cada objeto tendrá dos propiedades: nombre de plano, y número de puntos del plano.
-
-   Junto con una operación pública que permita cambiar el nombre del autor actualmente seleccionado.
-
-Se creó el módulo app.js con las respectivos requisitos
-
-5. Agregue al módulo 'app.js' una operación pública que permita actualizar el listado de los planos, a partir del nombre de su autor (dado como parámetro). Para hacer esto, dicha operación debe invocar la función correspondiente en apimock.js.
-
-	* Tome el listado de los planos, y le aplique una función 'map' que convierta sus elementos a objetos con sólo el nombre y el número de puntos.
-	* Sobre el listado resultante, haga otro 'map', que tome cada uno de estos elementos, y a través de jQuery agregue un elemento `<tr>` (con los respectivos `<td>`) a la tabla creada en el punto 4.
-	* Sobre cualquiera de los dos listados (el original, o el transformado mediante 'map'), aplique un 'reduce' que calcule el número de puntos. Con este valor, use jQuery para actualizar el campo correspondiente en la vista.
-
-6. Asocie la operación antes creada (la de app.js) al evento 'on-click' del botón de consulta de la página.
-
-7. Verifique el funcionamiento de la aplicación. Inicie el servidor, abra la aplicación HTML5/JavaScript, y rectifique que al ingresar un usuario existente, se cargue el listado del mismo.
-
-Se prueba en localhost:8080 y se verifica el correcto funcionamiento.
-![img](img/funcionamiento.png)
-
----
-
-## Para la próxima semana
-
-8. A la página, agregue un [elemento de tipo Canvas](https://www.w3schools.com/html/html5_canvas.asp), con su respectivo identificador. Haga que sus dimensiones no sean demasiado grandes para dejar espacio a los demás elementos de la página.
-
-![img](img/canvas.png)
-
-9. Al módulo app.js agregue una operación que, dado el nombre de un autor, y el nombre de uno de sus planos dados como parámetros, haciendo uso del método getBlueprintsByNameAndAuthor de apimock.js, consulte los puntos del plano correspondiente, y con los mismos dibuje consecutivamente segmentos de recta, haciendo uso [de los elementos HTML5 (Canvas, 2DContext, etc) disponibles](https://www.w3schools.com/html/html5_canvas.asp).
-
-![img](img/getBPByNameAndAuthor.png)
-
-10. Verifique que la aplicación ahora, además de mostrar el listado de los planos de un autor, permita seleccionar uno de éstos y graficarlo. Para esto, haga que en las filas generadas para el punto anterior se agregue el botón de selección.
-
-11. Verifique que la aplicación ahora permita: consultar los planos de un autor y graficar aquel que se seleccione.
-
-Se cumple con la funcionalidad completa del ejercicio, permitiendo consultar planos de un autor y graficar el seleccionado.
-![img](img/funCanvas.png)
-
-12. Una vez funcione la aplicación (sólo front-end), haga un módulo (llámelo 'apiclient') que tenga las mismas operaciones del 'apimock', pero que para las mismas use datos reales consultados del API REST.
-
-Ya se verificó el correcto funcionamiento del front-end con el 'apimock', por lo que se modifica el api implementando 'apiclient.js' para se comunique directamente con el backend.
-
-13. Modifique el código de app.js de manera que sea posible cambiar entre el 'apimock' y el 'apiclient' con sólo una línea de código.
-
-![img](img/funApiClient.png)
-
-14. Revise la [documentación y ejemplos de los estilos de Bootstrap](https://v4-alpha.getbootstrap.com/examples/) (ya incluidos en el ejercicio), agregue los elementos necesarios a la página para que tenga una mejor presentación.
+2. Diseño
+* Los callback usados al momento de cargar los planos y calcular los puntos de un autor NO hace uso de ciclos, sino de operaciones map/reduce.
+* Las operaciones de actualización y borrado hacen uso de promesas para garantizar que el cálculo del puntaje se realice sólo hasta cando se hayan actualizados los datos en el backend. Si se usan callbacks anidados se evalúa como R.
