@@ -10,9 +10,9 @@ import edu.eci.arsw.blueprints.model.Blueprint;
 import edu.eci.arsw.blueprints.model.Point;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -78,4 +78,14 @@ public class BlueprintsServices {
         return filtered;
     }
 
+    public void updateBlueprint(String author, String name, Blueprint blueprint) throws Exception {
+        Blueprint existing = getBlueprint(author, name);
+
+        if (existing == null) {
+            throw new Exception("Plano no encontrado: " + name);
+        }
+
+        existing.getPoints().clear();
+        existing.getPoints().addAll(blueprint.getPoints());
+    }
 }

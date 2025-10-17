@@ -14,13 +14,14 @@ public class Blueprint {
     private List<Point> points=null;
     
     private String name=null;
-            
-    public Blueprint(String author,String name,Point[] pnts){
-        this.author=author;
-        this.name=name;
-        points=Arrays.asList(pnts);
+
+    public Blueprint(String author, String name, Point[] pnts){
+        this.author = author;
+        this.name = name;
+        points = new ArrayList<>(Arrays.asList(pnts));
     }
-         
+
+
     public Blueprint(String author, String name){
         this.name=name;
         points=new ArrayList<>();

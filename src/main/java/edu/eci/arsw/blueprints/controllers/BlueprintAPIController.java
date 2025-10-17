@@ -59,4 +59,18 @@ public class BlueprintAPIController {
             return new ResponseEntity<>("Error al crear el plano.",HttpStatus.FORBIDDEN);
         }
     }
+
+    @PutMapping("/{author}/{name}")
+    public ResponseEntity<?> updateBlueprint(
+            @PathVariable("author") String author,
+            @PathVariable("name") String name,
+            @RequestBody Blueprint blueprint) {
+        try {
+            services.updateBlueprint(author, name, blueprint);
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            Logger.getLogger(BlueprintAPIController.class.getName()).log(Level.SEVERE, null, e);
+            return new ResponseEntity<>("Error al actualizar el plano.", HttpStatus.NOT_FOUND);
+        }
+    }
 }

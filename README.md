@@ -141,10 +141,25 @@ Si se tiene algún inconveniente con la ejecución, asegúrarse de que las varia
 
 1. Agregue al canvas de la página un manejador de eventos que permita capturar los 'clicks' realizados, bien sea a través del mouse, o a través de una pantalla táctil. Para esto, tenga en cuenta este ejemplo de uso de los eventos de tipo 'PointerEvent' (aún no soportado por todos los navegadores) para este fin. Recuerde que a diferencia del ejemplo anterior (donde el código JS está incrustado en la vista), se espera tener la inicialización de los manejadores de eventos correctamente modularizado, tal como se muestra en este codepen.
 
+Se agrega un manejador de eventos que permite capturar los "clicks" realizados, se verifica el correcto uso con logs que
+muestran en consola las coordenadas del "click" realizado.
+
+![img](img/manejadorEventos.png)
+
 2. Agregue lo que haga falta en sus módulos para que cuando se capturen nuevos puntos en el canvas abierto (si no se ha seleccionado un canvas NO se debe hacer nada):
 
 * Se agregue el punto al final de la secuencia de puntos del canvas actual (sólo en la memoria de la aplicación, AÚN NO EN EL API!).
+
+Se añadió un .push() para que se agregaran los puntos a la memoria de la aplicación y no en la API.
+
+![img](img/newManejador.png)
+
 * Se repinte el dibujo.
+
+Se agregaron las nuevas funcionalidades, se tuvo que modificar la función draw que solo permite guardar la el Blueprint actual y
+hace llamado a la función redraw que se encarga de volver a dibujar todo el Bluprint.
+
+![img](img/redraw.png)
 
 3. Agregue el botón Save/Update. Respetando la arquitectura de módulos actual del cliente, haga que al oprimirse el botón:
 
@@ -172,6 +187,34 @@ JSON.stringify(objetojavascript),
 ```
 
 Como en este caso se tienen tres operaciones basadas en callbacks, y que las mismas requieren realizarse en un orden específico, tenga en cuenta cómo usar las promesas de JavaScript mediante alguno de los ejemplos disponibles.
+
+**Controller**
+
+Expone un endpoint REST, donde recibe el nuevo objeto y llama al servicio para aplicar los cambios.
+
+![img](img/saveController.png)
+
+**Service**
+
+Busca el blueprint original y reemplaza los puntos con los nuevos.
+
+![img](img/saveService.png)
+
+**Api Client**
+
+![img](img/saveApiClient.png)
+
+Usa JQuery para hacer una petición PUT, convierte el objeto en JSON y envía los datos al endpoint.
+
+**App**
+
+Se crea un botón "Guardar" en el HTML.
+
+![img](img/saveBtn.png)
+
+En app.js, se crea un función que comprueba que haya un plano seleccionado y llama al PUT de apiclient. Finalmente actualiza la vista.
+
+![img](img/saveApp.png)
 
 4. Agregue el botón 'Create new blueprint', de manera que cuando se oprima:
 

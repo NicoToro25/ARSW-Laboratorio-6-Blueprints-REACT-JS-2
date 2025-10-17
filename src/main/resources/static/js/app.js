@@ -1,27 +1,27 @@
+const app = (() => {
 
-var app = (function () {
-    var author = null;
-    var blueprints = [];
+    let author = null;
+    let blueprints = [];
+    let currentBlueprint = null;
 
-    var api = apimock;
+    // apimock/apiclient
+    const api = apiclient;
 
-    var changeAuthor = function (newAuthor) {
+    const changeAuthor = (newAuthor) => {
         author = newAuthor;
         updateBlueprints();
     };
 
-    var updateBlueprints = function () {
-        api.getBlueprintsByAuthor(author, function (data) {
-            blueprints = data.map(function (bp) {
-                return {
-                    name: bp.name,
-                    points: bp.points.length
-                };
-            });
+    const updateBlueprints = () => {
+        api.getBlueprintsByAuthor(author, (data) => {
+            blueprints = data.map((bp) => ({
+                name: bp.name,
+                points: bp.points.length
+            }));
 
             $("#blueprintsTable tbody").empty();
 
-            blueprints.map(function (bp) {
+            blueprints.forEach((bp) => {
                 $("#blueprintsTable tbody").append(
                     `<tr>
                         <td>${bp.name}</td>
@@ -31,33 +31,90 @@ var app = (function () {
                 );
             });
 
-            var totalPoints = data.reduce(function (sum, bp) {
-                return sum + bp.points.length;
-            }, 0);
+            const totalPoints = data.reduce((sum, bp) => sum + bp.points.length, 0);
             $("#totalPoints").text(totalPoints);
         });
     };
 
-    var drawBlueprint = function(author, bpname){
-        api.getBlueprintsByNameAndAuthor(author, bpname, function(blueprint){
-            var canvas = document.getElementById("blueprintCanvas");
-            var ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const drawBlueprint = (author, bpname) => {
+        api.getBlueprintsByNameAndAuthor(author, bpname, (blueprint) => {
 
-            if (blueprint && blueprint.points.length > 0) {
-                ctx.beginPath();
-                ctx.moveTo(blueprint.points[0].x, blueprint.points[0].y);
-                for (let i = 1; i < blueprint.points.length; i++) {
-                    ctx.lineTo(blueprint.points[i].x, blueprint.points[i].y);
-                }
-                ctx.stroke();
-            }
+            currentBlueprint = blueprint;
+            redrawBlueprint();
         });
     };
 
+    const redrawBlueprint = () => {
+        const canvas = document.getElementById("blueprintCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (!currentBlueprint || currentBlueprint.points.length === 0) return;
+
+        ctx.beginPath();
+        ctx.moveTo(currentBlueprint.points[0].x, currentBlueprint.points[0].y);
+        for (let i = 0; i < currentBlueprint.points.length; i++) {
+            const p = currentBlueprint.points[i];
+            ctx.lineTo(p.x, p.y);
+        }
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+    }
+
+    // Manejador de eventos del Canvas
+    const initCanvasEvents = () => {
+        const canvas = document.getElementById("blueprintCanvas");
+
+        const ctx = canvas.getContext("2d");
+
+        canvas.addEventListener("pointerdown", (event) => {
+
+            if (!currentBlueprint) {
+                console.warn("No hay plano seleccionado.");
+                return;
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            console.log("Click en:", x, y);
+
+            ctx.fillStyle = "blue";
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            currentBlueprint.points.push({ x, y });
+
+            redrawBlueprint();
+        });
+    };
+
+    const saveBlueprint = () => {
+        if (!currentBlueprint || !author) {
+            alert("No hay plano seleccionado");
+            return;
+        }
+
+        api.updateBlueprint(author, currentBlueprint.name, currentBlueprint)
+            .then(() => {
+                console.log("Plano guardado exitosamente.")
+                alert("Plano guardado");
+                updateBlueprints();
+            })
+            .catch(err => console.error("Error al guardar", err));
+    };
+
+    $(document).ready(() => {
+        initCanvasEvents();
+    });
 
     return {
-        changeAuthor: changeAuthor,
-        drawBlueprint: drawBlueprint
+        changeAuthor,
+        drawBlueprint,
+        saveBlueprint
     };
 })();

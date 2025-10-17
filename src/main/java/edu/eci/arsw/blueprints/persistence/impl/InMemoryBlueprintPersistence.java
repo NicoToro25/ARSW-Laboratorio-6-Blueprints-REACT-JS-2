@@ -11,7 +11,6 @@ import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,4 +72,17 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence{
     public Set<Blueprint> getAllBlueprints() throws BlueprintNotFoundException {
         return new HashSet<>(blueprints.values());
     }
+
+    @Override
+    public void updateBlueprint(String author, String name, Blueprint updatedBlueprint) throws BlueprintNotFoundException {
+        Blueprint existing = getBlueprint(author, name);
+        if (existing == null) {
+            throw new BlueprintNotFoundException("Blueprint not found: " + author + " - " + name);
+        }
+
+        existing.getPoints().clear();
+        existing.getPoints().addAll(updatedBlueprint.getPoints());
+    }
+
+
 }
