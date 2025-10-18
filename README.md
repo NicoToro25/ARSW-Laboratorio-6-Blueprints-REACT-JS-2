@@ -226,6 +226,8 @@ Esta opción debe cambiar la manera como funciona la opción 'save/update', pues
 * Hacer POST al recurso /blueprints, para crear el nuevo plano.
 * Hacer GET a este mismo recurso, para actualizar el listado de planos y el puntaje del usuario.
 
+Se hace el mismo proceso que con el PUT, donde se ven cambios en app.js, apiclient y en el controller.
+
 5. Agregue el botón 'DELETE', de manera que (también con promesas):
 
 * Borre el canvas.

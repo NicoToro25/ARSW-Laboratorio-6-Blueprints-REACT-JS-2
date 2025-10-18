@@ -2,6 +2,7 @@ package edu.eci.arsw.blueprints.controllers;
 
 
 import edu.eci.arsw.blueprints.model.Blueprint;
+import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.services.BlueprintsServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,16 +51,6 @@ public class BlueprintAPIController {
         }
     }
 
-    @PostMapping()
-    public ResponseEntity<?> addBlueprint(@RequestBody Blueprint blueprint) {
-        try {
-            services.addNewBlueprint(blueprint);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear el plano.",HttpStatus.FORBIDDEN);
-        }
-    }
-
     @PutMapping("/{author}/{name}")
     public ResponseEntity<?> updateBlueprint(
             @PathVariable("author") String author,
@@ -73,4 +64,29 @@ public class BlueprintAPIController {
             return new ResponseEntity<>("Error al actualizar el plano.", HttpStatus.NOT_FOUND);
         }
     }
+
+    @PostMapping
+    public ResponseEntity<?> addNewBlueprint(@RequestBody Blueprint blueprint) {
+        try {
+            services.addNewBlueprint(blueprint);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (Exception e) {
+            Logger.getLogger(BlueprintAPIController.class.getName()).log(Level.SEVERE, null, e);
+            return new ResponseEntity<>("Error al crear el plano", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @DeleteMapping("/{author}/{bpname}")
+    public ResponseEntity<?> deleteBlueprint(@PathVariable String author, @PathVariable String bpname) {
+        try {
+            services.deleteBlueprint(author, bpname);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (BlueprintNotFoundException e) {
+            return new ResponseEntity<>("Blueprint no encontrado", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 }

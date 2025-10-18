@@ -3,6 +3,7 @@ const app = (() => {
     let author = null;
     let blueprints = [];
     let currentBlueprint = null;
+    let isNewBlueprint = false;
 
     // apimock/apiclient
     const api = apiclient;
@@ -26,7 +27,10 @@ const app = (() => {
                     `<tr>
                         <td>${bp.name}</td>
                         <td>${bp.points}</td>
-                        <td><button onclick="app.drawBlueprint('${author}','${bp.name}')">Open</button></td>
+                        <td>
+                            <button onclick="app.drawBlueprint('${author}','${bp.name}')">Open</button>
+                            <button onclick="app.deleteBlueprint('${author}','${bp.name}')">Delete</button>
+                        </td>
                     </tr>`
                 );
             });
@@ -93,28 +97,83 @@ const app = (() => {
         });
     };
 
-    const saveBlueprint = () => {
-        if (!currentBlueprint || !author) {
-            alert("No hay plano seleccionado");
+    const createNewBlueprint = () => {
+        if (!author) {
+            alert("Primero ingresa un autor.");
             return;
         }
 
-        api.updateBlueprint(author, currentBlueprint.name, currentBlueprint)
+        const name = prompt("Ingrese el nombre del nuevo blueprint:");
+        if (!name) return;
+
+        currentBlueprint = {
+            author: author,
+            name: name,
+            points: []
+        };
+        isNewBlueprint = true;
+
+        const canvas = document.getElementById("blueprintCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        alert("Haz clic en el canvas para añadir puntos.");
+    }
+
+    const saveBlueprint = () => {
+        if (!currentBlueprint || !author) return;
+
+        const promise = isNewBlueprint
+            ? api.createBlueprint(currentBlueprint) // POST
+            : api.updateBlueprint(author, currentBlueprint.name, currentBlueprint); // PUT
+
+        promise
             .then(() => {
-                console.log("Plano guardado exitosamente.")
-                alert("Plano guardado");
+                alert(isNewBlueprint ? "Plano creado con éxito" : "Plano actualizado correctamente");
+                isNewBlueprint = false;
                 updateBlueprints();
             })
-            .catch(err => console.error("Error al guardar", err));
+            .catch(err => console.error("Error al guardar:", err));
+    };
+
+    const clearCanvas = () => {
+        const canvas = document.getElementById("blueprintCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const deleteBlueprint = (author, bpname) => {
+        if (!confirm(`¿Deseas eliminar el plano "${bpname}" de ${author}?`)) {
+            return;
+        }
+
+        api.deleteBlueprint(author, bpname)
+            .then(() => {
+                alert("Plano eliminado correctamente.");
+                if (currentBlueprint && currentBlueprint.name === bpname) {
+                    clearCanvas();
+                    currentBlueprint = null;
+                }
+                updateBlueprints();
+            })
+            .catch(error => {
+                console.error("Error al eliminar:", error);
+                alert("Error al eliminar el plano.");
+            });
     };
 
     $(document).ready(() => {
         initCanvasEvents();
+
+        $("#saveBlueprint").click(saveBlueprint);
+        $("#createBlueprint").click(createNewBlueprint);
     });
 
     return {
         changeAuthor,
         drawBlueprint,
-        saveBlueprint
+        saveBlueprint,
+        createNewBlueprint,
+        deleteBlueprint
     };
 })();

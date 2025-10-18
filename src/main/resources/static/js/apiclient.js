@@ -1,11 +1,11 @@
 //@author
 
-apiclient = ( () => {
+apiclient = (() => {
 
-    const baseUrl = "http://localhost:8080/blueprints/"
+    const baseUrl = "http://localhost:8080/blueprints";
 
     const getBlueprintsByAuthor = (authname, callback) => {
-        fetch(baseUrl + authname)
+        fetch(`${baseUrl}/${authname}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Error en la consulta de autor " + authname);
@@ -17,7 +17,7 @@ apiclient = ( () => {
     };
 
     const getBlueprintsByNameAndAuthor = (authname, bpname, callback) => {
-        fetch(baseUrl + authname + "/" + bpname)
+        fetch(`${baseUrl}/${authname}/${bpname}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Error en la consulta del plano " + bpname);
@@ -28,20 +28,38 @@ apiclient = ( () => {
             .catch(error => console.error("Error:", error));
     };
 
-
     const updateBlueprint = (author, bpname, blueprint) => {
         return $.ajax({
-            url: `http://localhost:8080/blueprints/${author}/${bpname}`,
+            url: `${baseUrl}/${author}/${bpname}`,
             type: "PUT",
             data: JSON.stringify(blueprint),
             contentType: "application/json"
         });
-    }
+    };
+
+    const createBlueprint = (blueprint) => {
+        return $.ajax({
+            url: baseUrl,
+            type: "POST",
+            data: JSON.stringify(blueprint),
+            contentType: "application/json"
+        });
+    };
+
+    const deleteBlueprint = (author, bpname) => {
+        return $.ajax({
+            url: `${baseUrl}/${author}/${bpname}`,
+            type: "DELETE"
+        });
+    };
+
 
     return {
-        getBlueprintsByAuthor: getBlueprintsByAuthor,
-        getBlueprintsByNameAndAuthor: getBlueprintsByNameAndAuthor,
-        updateBlueprint
+        getBlueprintsByAuthor,
+        getBlueprintsByNameAndAuthor,
+        updateBlueprint,
+        createBlueprint,
+        deleteBlueprint
     };
 
 })();
